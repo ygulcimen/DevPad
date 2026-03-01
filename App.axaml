@@ -1,0 +1,58 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DevPad.App"
+             xmlns:local="using:DevPad"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <!-- ── Toolbar buttons (shared across all tool views) ─────────── -->
+        <Style Selector="StackPanel.Toolbar > Button">
+            <Setter Property="Background" Value="#3C3C3C"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="Padding" Value="14,5"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#505050"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2A2A"/>
+        </Style>
+
+        <!-- ── TreeView / TreeViewItem (shared by JSON and XML tools) ─── -->
+        <Style Selector="TreeView">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="Padding" Value="2,1"/>
+        </Style>
+        <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="#2A2D2E"/>
+        </Style>
+        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="#37373D"/>
+        </Style>
+    </Application.Styles>
+
+    <Application.Resources>
+        <!-- Monospace font for code display -->
+        <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas, Courier New, monospace</FontFamily>
+
+        <!-- Sidebar styling -->
+        <SolidColorBrush x:Key="SidebarBackground" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="SidebarItemHover" Color="#2D2D2D"/>
+        <SolidColorBrush x:Key="SidebarItemSelected" Color="#37373D"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#0078D4"/>
+    </Application.Resources>
+</Application>

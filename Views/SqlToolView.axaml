@@ -1,0 +1,114 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevPad.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="DevPad.Views.SqlToolView"
+             x:DataType="vm:SqlToolViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ── Toolbar ───────────────────────────────────────────── -->
+        <Border Grid.Row="0"
+                Background="#252526"
+                BorderBrush="#3C3C3C"
+                BorderThickness="0,0,0,1"
+                Padding="10,7">
+            <StackPanel Classes="Toolbar" Orientation="Horizontal" Spacing="6">
+                <Button Command="{Binding CopyCommand}">Copy</Button>
+                <Button Command="{Binding ClearCommand}">Clear</Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Pane labels ────────────────────────────────────────── -->
+        <Border Grid.Row="1"
+                Background="#1C1C1C"
+                BorderBrush="#3C3C3C"
+                BorderThickness="0,0,0,1"
+                Height="22">
+            <Grid ColumnDefinitions="*,4,*">
+                <TextBlock Grid.Column="0"
+                           Text="INPUT"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           Foreground="#4A4A4A"
+                           VerticalAlignment="Center"
+                           Padding="12,0"/>
+                <TextBlock Grid.Column="2"
+                           Text="FORMATTED"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           Foreground="#4A4A4A"
+                           VerticalAlignment="Center"
+                           Padding="12,0"/>
+            </Grid>
+        </Border>
+
+        <!-- ── Split pane ─────────────────────────────────────────── -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,4,*">
+
+            <!-- Input TextBox -->
+            <TextBox Grid.Column="0"
+                     Text="{Binding InputText}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     FontFamily="{StaticResource MonospaceFont}"
+                     FontSize="13"
+                     Background="#1E1E1E"
+                     Foreground="#D4D4D4"
+                     CaretBrush="#D4D4D4"
+                     SelectionBrush="#264F78"
+                     BorderThickness="0"
+                     Padding="12,8"
+                     VerticalAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     Watermark="Paste SQL here..."/>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1"
+                          Background="#3C3C3C"
+                          ResizeBehavior="PreviousAndNext"
+                          ResizeDirection="Columns"/>
+
+            <!-- Right panel: syntax-highlighted output -->
+            <Grid Grid.Column="2" Background="#1E1E1E">
+
+                <!-- Empty-state hint (shown before first Format) -->
+                <TextBlock x:Name="EmptyHint"
+                           Text="Paste SQL to see formatted output"
+                           FontSize="13"
+                           Foreground="#444444"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="True"/>
+
+                <!-- Syntax-highlighted output — populated by code-behind (one TextBlock per line) -->
+                <ScrollViewer x:Name="OutputScroller"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto"
+                              IsVisible="False"
+                              Padding="0,4">
+                    <StackPanel x:Name="OutputLines"
+                                Spacing="0"
+                                Margin="4,0"/>
+                </ScrollViewer>
+
+            </Grid>
+        </Grid>
+
+        <!-- ── Status bar ──────────────────────────────────────────── -->
+        <Border Grid.Row="3"
+                Background="#252526"
+                BorderBrush="#3C3C3C"
+                BorderThickness="0,1,0,0"
+                Padding="12,5">
+            <TextBlock Text="{Binding StatusText}"
+                       Foreground="#808080"
+                       FontSize="12"
+                       VerticalAlignment="Center"/>
+        </Border>
+
+    </Grid>
+</UserControl>

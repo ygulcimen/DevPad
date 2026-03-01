@@ -1,0 +1,289 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevPad.ViewModels"
+             xmlns:models="using:DevPad.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="DevPad.Views.XmlToolView"
+             x:DataType="vm:XmlToolViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.Tab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#707070"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.Tab:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ── Toolbar ───────────────────────────────────────────── -->
+        <Border Grid.Row="0"
+                Background="#252526"
+                BorderBrush="#3C3C3C"
+                BorderThickness="0,0,0,1"
+                Padding="10,7">
+            <StackPanel Classes="Toolbar" Orientation="Horizontal" Spacing="6">
+                <Button Command="{Binding FormatCommand}">Format</Button>
+                <Border Width="1" Background="#3C3C3C" Margin="4,2"/>
+                <Button Command="{Binding CopyCommand}">Copy</Button>
+                <Button Command="{Binding ClearCommand}">Clear</Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Split pane (Input 35% │ Output 65%) ───────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.35*,4,0.65*">
+
+            <!-- ── Left: INPUT ───────────────────────────────────── -->
+            <Grid Grid.Column="0" RowDefinitions="22,*">
+
+                <!-- Pane label -->
+                <Border Grid.Row="0"
+                        Background="#1C1C1C"
+                        BorderBrush="#3C3C3C"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock Text="INPUT"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#4A4A4A"
+                               VerticalAlignment="Center"
+                               Padding="12,0"/>
+                </Border>
+
+                <TextBox Grid.Row="1"
+                         Text="{Binding InputText}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         FontFamily="{StaticResource MonospaceFont}"
+                         FontSize="13"
+                         Background="#1E1E1E"
+                         Foreground="#D4D4D4"
+                         CaretBrush="#D4D4D4"
+                         SelectionBrush="#264F78"
+                         BorderThickness="0"
+                         Padding="12,8"
+                         VerticalAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         Watermark="Paste XML here..."/>
+            </Grid>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1"
+                          Background="#3C3C3C"
+                          ResizeBehavior="PreviousAndNext"
+                          ResizeDirection="Columns"/>
+
+            <!-- ── Right: OUTPUT ──────────────────────────────────── -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Background="#1E1E1E">
+
+                <!-- Tab bar: TEXT | TREE + XPath bar -->
+                <Grid Grid.Row="0" RowDefinitions="Auto,Auto">
+
+                    <!-- Tab row -->
+                    <Border Grid.Row="0"
+                            Background="#252526"
+                            BorderBrush="#3C3C3C"
+                            BorderThickness="0,0,0,1">
+                        <StackPanel Orientation="Horizontal">
+
+                            <StackPanel Orientation="Vertical" Spacing="0">
+                                <Button Classes="Tab"
+                                        Command="{Binding SwitchToTextCommand}">TEXT</Button>
+                                <Border Height="2"
+                                        Background="#007ACC"
+                                        IsVisible="{Binding ShowFormatted}"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Vertical" Spacing="0">
+                                <Button Classes="Tab"
+                                        Command="{Binding SwitchToTreeCommand}">TREE</Button>
+                                <Border Height="2"
+                                        Background="#007ACC"
+                                        IsVisible="{Binding ShowTree}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Border>
+
+                    <!-- XPath bar (only useful when tree is visible, but always shown) -->
+                    <Border Grid.Row="1"
+                            Background="#252526"
+                            BorderBrush="#3C3C3C"
+                            BorderThickness="0,0,0,1"
+                            Padding="8,5">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="XPath:"
+                                       Foreground="#888888"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding XPathQuery}"
+                                     FontFamily="{StaticResource MonospaceFont}"
+                                     FontSize="12"
+                                     Background="#2D2D2D"
+                                     Foreground="#D4D4D4"
+                                     CaretBrush="#D4D4D4"
+                                     BorderBrush="#3C3C3C"
+                                     BorderThickness="1"
+                                     CornerRadius="3"
+                                     Padding="6,3"
+                                     IsEnabled="{Binding IsValid}"
+                                     Watermark="//element[@attr='value']">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Return" Command="{Binding RunXPathCommand}"/>
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <Button Grid.Column="2"
+                                    Margin="6,0,0,0"
+                                    Command="{Binding RunXPathCommand}"
+                                    IsEnabled="{Binding IsValid}"
+                                    Background="#3C3C3C"
+                                    Foreground="#CCCCCC"
+                                    Padding="10,3"
+                                    CornerRadius="3"
+                                    BorderThickness="0"
+                                    FontSize="12"
+                                    Cursor="Hand">Run</Button>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
+                <!-- ── Formatted-text panel (default) ────────────── -->
+                <Grid Grid.Row="1" IsVisible="{Binding ShowFormatted}" Background="#1E1E1E">
+
+                    <TextBlock x:Name="FormattedEmptyHint"
+                               Text="Formatted output appears once valid XML is entered"
+                               FontSize="13"
+                               Foreground="#444444"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="32"/>
+
+                    <ScrollViewer x:Name="OutputScroller"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="False"
+                                  Padding="0,4">
+                        <StackPanel x:Name="OutputLines"
+                                    Spacing="0"
+                                    Margin="4,0"/>
+                    </ScrollViewer>
+
+                </Grid>
+
+                <!-- ── Tree panel ─────────────────────────────────── -->
+                <Grid Grid.Row="1" IsVisible="{Binding ShowTree}" Background="#1E1E1E">
+
+                    <TextBlock Text="Tree view appears here once valid XML is entered"
+                               FontSize="13"
+                               Foreground="#444444"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="32"
+                               IsVisible="{Binding IsInvalid}"/>
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding IsValid}"
+                                  Padding="4">
+                        <TreeView ItemsSource="{Binding TreeNodes}"
+                                  FontFamily="{StaticResource MonospaceFont}"
+                                  FontSize="13">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate x:DataType="models:XmlTreeNode"
+                                                  ItemsSource="{Binding Children}">
+                                    <TextBlock Text="{Binding DisplayText}"
+                                               Foreground="{Binding NodeForeground}"/>
+                                </TreeDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </ScrollViewer>
+
+                </Grid>
+
+                <!-- XPath results panel -->
+                <Border Grid.Row="2"
+                        Background="#1A1A1A"
+                        BorderBrush="#3C3C3C"
+                        BorderThickness="0,1,0,0"
+                        MaxHeight="180"
+                        IsVisible="{Binding HasXPathResult}">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0"
+                                Padding="8,4"
+                                BorderBrush="#3C3C3C"
+                                BorderThickness="0,0,0,1">
+                            <TextBlock Text="XPath Results"
+                                       FontSize="11"
+                                       Foreground="#888888"/>
+                        </Border>
+                        <ScrollViewer Grid.Row="1"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto">
+                            <TextBox Text="{Binding XPathResultText}"
+                                     IsReadOnly="True"
+                                     FontFamily="{StaticResource MonospaceFont}"
+                                     FontSize="12"
+                                     Background="Transparent"
+                                     Foreground="#D4D4D4"
+                                     BorderThickness="0"
+                                     Padding="8,4"
+                                     TextWrapping="NoWrap"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Grid>
+
+        <!-- ── Status bar ──────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="#252526"
+                BorderBrush="#3C3C3C"
+                BorderThickness="0,1,0,0"
+                Padding="12,5">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="{Binding StatusText}"
+                           Foreground="{Binding StatusForeground}"
+                           FontSize="12"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="·"
+                           Foreground="#555555"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+                <TextBlock Text="{Binding NodeCountText}"
+                           Foreground="#808080"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+                <TextBlock Text="·"
+                           Foreground="#555555"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+                <TextBlock Text="{Binding FileSizeText}"
+                           Foreground="#808080"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</UserControl>
