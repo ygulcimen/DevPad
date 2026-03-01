@@ -1,8 +1,13 @@
 ## .NET / C# gitignore
 
+# Claude Code local settings
+.claude/
+
 # Build outputs
 bin/
 obj/
+publish/
+installer/
 
 # User-specific files
 *.user
