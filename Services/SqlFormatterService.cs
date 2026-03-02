@@ -63,6 +63,11 @@ public class SqlFormatterService
     private static readonly Regex OnRe =
         new(@"\b(ON)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    // Lines that start with a clause keyword followed by a comma-separated list
+    private static readonly Regex CommaClauseLineRe = new(
+        @"^(SELECT(?:\s+DISTINCT)?|DISTINCT|GROUP\s+BY|ORDER\s+BY|VALUES|SET)\s+(.+)$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     // Placeholder to protect string literals during reformatting
     private const string LiteralPlaceholder = "\x02STR{0}\x03";
     private static readonly Regex LiteralRe =
@@ -93,6 +98,11 @@ public class SqlFormatterService
         // Step 4 — indent AND/OR and ON inside clauses
         work = AndOrRe.Replace(work, m => "\n  " + m.Value.ToUpperInvariant());
         work = OnRe.Replace(work,    m => "\n    " + m.Value.ToUpperInvariant());
+
+        // Step 5 — split comma-separated field/column lists onto their own indented lines
+        //          (e.g. SELECT a, b, c  →  SELECT\n    a,\n    b,\n    c)
+        //          Commas inside parentheses are preserved (COALESCE(a,b), IN (1,2,3), etc.)
+        work = SplitCommaLists(work);
 
         // Step 6 — uppercase remaining known keywords
         work = UppercaseKeywords(work);
@@ -127,6 +137,72 @@ public class SqlFormatterService
         "WITH", "PRIMARY", "KEY", "FOREIGN", "REFERENCES", "UNIQUE",
         "DEFAULT", "CONSTRAINT", "CHECK",
     ];
+
+    /// <summary>
+    /// Splits lines like "SELECT a, b, COALESCE(x,y) AS c" into one field per indented line.
+    /// Only commas at the top level (depth 0, not inside parentheses) are used as split points.
+    /// </summary>
+    private static string SplitCommaLists(string sql)
+    {
+        var sb = new StringBuilder();
+        foreach (var rawLine in sql.Split('\n'))
+        {
+            var line = rawLine.TrimEnd();
+            var m = CommaClauseLineRe.Match(line);
+            if (!m.Success || !line.Contains(','))
+            {
+                sb.Append(line).Append('\n');
+                continue;
+            }
+
+            string keyword = m.Groups[1].Value.ToUpperInvariant();
+            string rest    = m.Groups[2].Value.Trim();
+
+            var items = SplitTopLevelCommas(rest);
+            if (items.Count <= 1)
+            {
+                sb.Append(line).Append('\n');
+                continue;
+            }
+
+            sb.Append(keyword).Append('\n');
+            foreach (var item in items)
+                sb.Append("    ").Append(item).Append('\n');
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Splits a string on commas that are not inside parentheses or string literals.</summary>
+    private static List<string> SplitTopLevelCommas(string s)
+    {
+        var items = new List<string>();
+        int depth = 0, start = 0;
+        bool inStr = false;
+
+        for (int i = 0; i < s.Length; i++)
+        {
+            char c = s[i];
+            if (!inStr && c == '\'') { inStr = true; continue; }
+            if (inStr && c == '\'')
+            {
+                if (i + 1 < s.Length && s[i + 1] == '\'') i++; // escaped ''
+                else inStr = false;
+                continue;
+            }
+            if (inStr) continue;
+
+            if (c is '(' or '[') depth++;
+            else if (c is ')' or ']') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                items.Add(s[start..i].Trim() + ",");
+                start = i + 1;
+            }
+        }
+        var last = s[start..].Trim();
+        if (last.Length > 0) items.Add(last);
+        return items;
+    }
 
     private static string UppercaseKeywords(string sql)
     {
