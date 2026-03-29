@@ -12,33 +12,49 @@
         Height="700"
         MinWidth="800"
         MinHeight="500"
-        Background="#252526">
+        Background="#0d1117">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
     <Window.KeyBindings>
-        <!-- Global paste-and-format: reads clipboard and delegates to the active tool -->
         <KeyBinding Gesture="Ctrl+Shift+V" Command="{Binding GlobalPasteAndFormatCommand}"/>
+        <KeyBinding Gesture="Ctrl+D1"      Command="{Binding SelectTool1Command}"/>
+        <KeyBinding Gesture="Ctrl+D2"      Command="{Binding SelectTool2Command}"/>
+        <KeyBinding Gesture="Ctrl+D3"      Command="{Binding SelectTool3Command}"/>
+        <KeyBinding Gesture="Ctrl+D4"      Command="{Binding SelectTool4Command}"/>
+        <KeyBinding Gesture="Ctrl+D5"      Command="{Binding SelectTool5Command}"/>
+        <KeyBinding Gesture="Ctrl+L"       Command="{Binding GlobalClearCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding GlobalCopyOutputCommand}"/>
     </Window.KeyBindings>
 
-    <Grid ColumnDefinitions="200,*">
+    <Grid ColumnDefinitions="260,*">
         <!-- Sidebar -->
         <Border Grid.Column="0"
                 Background="{StaticResource SidebarBackground}"
-                BorderBrush="#3C3C3C"
+                BorderBrush="#30363d"
                 BorderThickness="0,0,1,0">
             <Grid RowDefinitions="Auto,*">
+
                 <!-- App Title -->
                 <Border Grid.Row="0"
-                        Padding="16,20,16,16"
-                        BorderBrush="#3C3C3C"
+                        Padding="20,22,16,18"
+                        BorderBrush="#30363d"
                         BorderThickness="0,0,0,1">
-                    <TextBlock Text="DevPad"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               Foreground="#E0E0E0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="&lt;/&gt;"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   FontFamily="{StaticResource MonospaceFont}"
+                                   Foreground="#58a6ff"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="DevPad"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="#e6edf3"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Border>
 
                 <!-- Tool List -->
@@ -46,13 +62,15 @@
                          ItemsSource="{Binding Tools}"
                          SelectedItem="{Binding SelectedTool}"
                          Background="Transparent"
-                         Padding="8,8,8,8">
+                         Padding="10,10,10,10">
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem">
-                            <Setter Property="Padding" Value="12,10"/>
-                            <Setter Property="Margin" Value="0,2"/>
-                            <Setter Property="CornerRadius" Value="6"/>
-                            <Setter Property="Cursor" Value="Hand"/>
+                            <Setter Property="Padding"       Value="12,10"/>
+                            <Setter Property="Margin"        Value="0,2"/>
+                            <Setter Property="CornerRadius"  Value="6"/>
+                            <Setter Property="Cursor"        Value="Hand"/>
+                            <Setter Property="BorderThickness" Value="2,0,0,0"/>
+                            <Setter Property="BorderBrush"   Value="Transparent"/>
                         </Style>
                         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                             <Setter Property="Background" Value="{StaticResource SidebarItemHover}"/>
@@ -60,30 +78,31 @@
                         <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
                             <Setter Property="Background" Value="{StaticResource SidebarItemSelected}"/>
                         </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="BorderBrush" Value="#58a6ff"/>
+                        </Style>
                         <!-- Default icon / label colours -->
                         <Style Selector="ListBoxItem PathIcon">
-                            <Setter Property="Foreground" Value="#AAAAAA"/>
+                            <Setter Property="Foreground" Value="#7d8590"/>
                         </Style>
                         <Style Selector="ListBoxItem TextBlock">
-                            <Setter Property="Foreground" Value="#CCCCCC"/>
+                            <Setter Property="Foreground" Value="#7d8590"/>
                         </Style>
-                        <!-- Selected state: icon and label light up to white -->
+                        <!-- Selected: icon and label light up -->
                         <Style Selector="ListBoxItem:selected PathIcon">
-                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter Property="Foreground" Value="#e6edf3"/>
                         </Style>
                         <Style Selector="ListBoxItem:selected TextBlock">
-                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter Property="Foreground" Value="#e6edf3"/>
                         </Style>
                     </ListBox.Styles>
 
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:ToolViewModelBase">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <!-- Tool Icon -->
                                 <PathIcon Data="{Binding IconPath}"
-                                          Width="20"
-                                          Height="20"/>
-                                <!-- Tool Name -->
+                                          Width="18"
+                                          Height="18"/>
                                 <TextBlock Text="{Binding ToolName}"
                                            VerticalAlignment="Center"
                                            FontSize="14"/>
@@ -96,7 +115,7 @@
 
         <!-- Main Content Area -->
         <Border Grid.Column="1"
-                Background="#1E1E1E">
+                Background="#0d1117">
             <ContentControl Content="{Binding SelectedTool}"/>
         </Border>
     </Grid>

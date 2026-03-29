@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevPad.Models;
@@ -20,43 +22,23 @@ public partial class XmlToolViewModel : ToolViewModelBase
     private static readonly SolidColorBrush NeutralBrush = new(Color.Parse("#8E8E8E"));
 
     public override string ToolName => "XML";
-
-    // Angle brackets icon representing XML/HTML tags
     public override string IconPath => "M14.5 4L9.5 20M7 7L2 12L7 17M17 7L22 12L17 17";
 
-    [ObservableProperty]
-    private string _inputText = string.Empty;
-
-    [ObservableProperty]
-    private string _statusText = "Paste XML to begin";
-
-    [ObservableProperty]
-    private IBrush _statusForeground = NeutralBrush;
+    [ObservableProperty] private string _inputText       = string.Empty;
+    [ObservableProperty] private string _statusText      = "Paste XML to begin";
+    [ObservableProperty] private IBrush _statusForeground = NeutralBrush;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInvalid))]
     private bool _isValid;
 
-    [ObservableProperty]
-    private string _nodeCountText = string.Empty;
+    [ObservableProperty] private string _nodeCountText  = string.Empty;
+    [ObservableProperty] private string _fileSizeText   = string.Empty;
+    [ObservableProperty] private string _xPathQuery     = string.Empty;
+    [ObservableProperty] private string _xPathResultText = string.Empty;
+    [ObservableProperty] private bool   _hasXPathResult;
+    [ObservableProperty] private string _formattedText  = string.Empty;
 
-    [ObservableProperty]
-    private string _fileSizeText = string.Empty;
-
-    [ObservableProperty]
-    private string _xPathQuery = string.Empty;
-
-    [ObservableProperty]
-    private string _xPathResultText = string.Empty;
-
-    [ObservableProperty]
-    private bool _hasXPathResult;
-
-    /// <summary>Pretty-printed XML; drives the syntax-highlighted output panel via code-behind.</summary>
-    [ObservableProperty]
-    private string _formattedText = string.Empty;
-
-    /// <summary>When true the right pane shows the tree; false shows the formatted text panel.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowFormatted))]
     private bool _showTree = false;
@@ -66,52 +48,35 @@ public partial class XmlToolViewModel : ToolViewModelBase
 
     public ObservableCollection<XmlTreeNode> TreeNodes { get; } = new();
 
-    // ── View-toggle commands ──────────────────────────────────────────────
-
-    [RelayCommand]
-    private void SwitchToText() => ShowTree = false;
-
-    [RelayCommand]
-    private void SwitchToTree() => ShowTree = true;
-
-    // ── Input change handler ──────────────────────────────────────────────
+    [RelayCommand] private void SwitchToText() => ShowTree = false;
+    [RelayCommand] private void SwitchToTree() => ShowTree = true;
 
     partial void OnInputTextChanged(string value)
     {
-        HasXPathResult  = false;
-        XPathResultText = string.Empty;
+        HasXPathResult = false; XPathResultText = string.Empty;
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            IsValid          = false;
-            StatusText       = "Paste XML to begin";
-            StatusForeground = NeutralBrush;
+            IsValid = false; StatusText = "Paste XML to begin"; StatusForeground = NeutralBrush;
             NodeCountText = FileSizeText = FormattedText = string.Empty;
-            TreeNodes.Clear();
-            return;
+            TreeNodes.Clear(); return;
         }
 
-        // Single parse: format + validate + build tree in one go
         var (formatted, nodes, count, error) = _service.FormatAndBuildTree(value);
-        bool valid = error == null;
-        IsValid = valid;
+        IsValid = error == null;
 
-        if (valid)
+        if (IsValid)
         {
-            StatusText       = "Valid XML";
-            StatusForeground = ValidBrush;
-            FormattedText    = formatted ?? value;
-            TreeNodes.Clear();
-            foreach (var node in nodes) TreeNodes.Add(node);
+            StatusText = "Valid XML"; StatusForeground = ValidBrush;
+            FormattedText = formatted ?? value;
+            TreeNodes.Clear(); foreach (var node in nodes) TreeNodes.Add(node);
             NodeCountText = $"{count:N0} nodes";
             FileSizeText  = $"{Encoding.UTF8.GetByteCount(value):N0} bytes";
         }
         else
         {
-            StatusText       = error ?? "Invalid XML";
-            StatusForeground = ErrorBrush;
-            FormattedText    = string.Empty;
-            TreeNodes.Clear();
+            StatusText = error ?? "Invalid XML"; StatusForeground = ErrorBrush;
+            FormattedText = string.Empty; TreeNodes.Clear();
             NodeCountText = FileSizeText = string.Empty;
         }
     }
@@ -128,18 +93,22 @@ public partial class XmlToolViewModel : ToolViewModelBase
     private async Task CopyAsync()
     {
         if (string.IsNullOrWhiteSpace(InputText)) return;
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            await (desktop.MainWindow?.Clipboard?.SetTextAsync(InputText) ?? Task.CompletedTask);
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)
+            await (d.MainWindow?.Clipboard?.SetTextAsync(InputText) ?? Task.CompletedTask);
+        await FlashCopyAsync();
     }
 
     [RelayCommand]
-    private void Clear()
+    private async Task CopyFormattedAsync()
     {
-        InputText       = string.Empty;
-        XPathQuery      = string.Empty;
-        XPathResultText = string.Empty;
-        HasXPathResult  = false;
+        if (string.IsNullOrEmpty(FormattedText)) return;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)
+            await (d.MainWindow?.Clipboard?.SetTextAsync(FormattedText) ?? Task.CompletedTask);
+        await FlashCopyOutputAsync();
     }
+
+    [RelayCommand]
+    private void Clear() => ExecuteClear();
 
     [RelayCommand]
     private void RunXPath()
@@ -148,23 +117,46 @@ public partial class XmlToolViewModel : ToolViewModelBase
         var (results, error) = _service.ExecuteXPath(InputText, XPathQuery);
         HasXPathResult = true;
 
-        if (error != null)
+        if (error != null) XPathResultText = $"Error: {error}";
+        else if (results.Count == 0) XPathResultText = "(no matches)";
+        else XPathResultText = $"{results.Count} match(es):\n\n" + string.Join("\n\n", results);
+    }
+
+    public override void ExecuteClear()
+    {
+        InputText = XPathQuery = XPathResultText = string.Empty;
+        HasXPathResult = false;
+    }
+
+    public override async Task ExecuteCopyOutputAsync()
+    {
+        if (string.IsNullOrEmpty(FormattedText)) return;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)
+            await (d.MainWindow?.Clipboard?.SetTextAsync(FormattedText) ?? Task.CompletedTask);
+        await FlashCopyOutputAsync();
+    }
+
+    public override async Task SaveAsAsync()
+    {
+        if (string.IsNullOrEmpty(FormattedText)) return;
+        var sp = GetStorageProvider(); if (sp is null) return;
+
+        var file = await sp.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            XPathResultText = $"Error: {error}";
-        }
-        else if (results.Count == 0)
-        {
-            XPathResultText = "(no matches)";
-        }
-        else
-        {
-            XPathResultText = $"{results.Count} match(es):\n\n" + string.Join("\n\n", results);
-        }
+            Title             = "Save XML",
+            SuggestedFileName = "output.xml",
+            FileTypeChoices   = new[] { new FilePickerFileType("XML") { Patterns = new[] { "*.xml" } } }
+        });
+        if (file is null) return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await using var writer = new StreamWriter(stream, Encoding.UTF8);
+        await writer.WriteAsync(FormattedText);
     }
 
     public override Task PasteAndFormat(string clipboardText)
     {
-        InputText = clipboardText;  // OnInputTextChanged validates + formats + builds tree
+        InputText = clipboardText;
         return Task.CompletedTask;
     }
 }

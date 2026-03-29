@@ -1,7 +1,9 @@
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevPad.Services;
@@ -13,68 +15,32 @@ public partial class Base64ToolViewModel : ToolViewModelBase
     private static readonly Base64Service _service = new();
 
     public override string ToolName => "Base64";
-
-    // Binary/encode icon
     public override string IconPath => "M4 6H20M4 12H20M4 18H14M17 16L19 18L23 14";
 
-    [ObservableProperty]
-    private string _inputText = string.Empty;
-
-    [ObservableProperty]
-    private string _outputText = string.Empty;
-
-    // Status bar text (idle hint, size info, or error)
-    [ObservableProperty]
-    private string _statusText = "Enter text and click Encode, or paste Base64 and click Decode";
-
-    // When true, Base64 output uses - _ instead of + / and no padding
-    [ObservableProperty]
-    private bool _isUrlSafe;
+    [ObservableProperty] private string _inputText  = string.Empty;
+    [ObservableProperty] private string _outputText = string.Empty;
+    [ObservableProperty] private string _statusText = "Enter text and click Encode, or paste Base64 and click Decode";
+    [ObservableProperty] private bool   _isUrlSafe;
 
     [RelayCommand]
     private void Encode()
     {
-        if (string.IsNullOrEmpty(InputText))
-        {
-            OutputText = string.Empty;
-            StatusText = "Nothing to encode";
-            return;
-        }
-
+        if (string.IsNullOrEmpty(InputText)) { OutputText = string.Empty; StatusText = "Nothing to encode"; return; }
         OutputText = _service.Encode(InputText, IsUrlSafe);
-
-        var inBytes  = Encoding.UTF8.GetByteCount(InputText);
-        var outChars = OutputText.Length;
-        var mode     = IsUrlSafe ? "URL-safe" : "Standard";
-        StatusText   = $"Encoded ({mode}) · Input: {inBytes:N0} bytes · Output: {outChars:N0} chars";
+        var inBytes = Encoding.UTF8.GetByteCount(InputText);
+        StatusText = $"Encoded ({(IsUrlSafe ? "URL-safe" : "Standard")}) · Input: {inBytes:N0} bytes · Output: {OutputText.Length:N0} chars";
     }
 
     [RelayCommand]
     private void Decode()
     {
-        if (string.IsNullOrEmpty(InputText))
-        {
-            OutputText = string.Empty;
-            StatusText = "Nothing to decode";
-            return;
-        }
-
+        if (string.IsNullOrEmpty(InputText)) { OutputText = string.Empty; StatusText = "Nothing to decode"; return; }
         var (result, error) = _service.Decode(InputText, IsUrlSafe);
-
-        if (error != null)
-        {
-            OutputText = string.Empty;
-            StatusText = $"Decode error: {error}";
-            return;
-        }
-
+        if (error != null) { OutputText = string.Empty; StatusText = $"Decode error: {error}"; return; }
         OutputText = result!;
-        var inChars  = InputText.Length;
-        var outBytes = Encoding.UTF8.GetByteCount(result!);
-        StatusText   = $"Decoded · Input: {inChars:N0} chars · Output: {outBytes:N0} bytes";
+        StatusText = $"Decoded · Input: {InputText.Length:N0} chars · Output: {Encoding.UTF8.GetByteCount(result!):N0} bytes";
     }
 
-    /// <summary>Moves current output to input so the user can round-trip.</summary>
     [RelayCommand]
     private void Swap()
     {
@@ -82,34 +48,55 @@ public partial class Base64ToolViewModel : ToolViewModelBase
         StatusText = "Swapped input and output";
     }
 
-    /// <summary>Copies the output to clipboard.</summary>
     [RelayCommand]
     private async Task CopyAsync()
     {
         if (string.IsNullOrEmpty(OutputText)) return;
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            await (desktop.MainWindow?.Clipboard?.SetTextAsync(OutputText) ?? Task.CompletedTask);
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)
+            await (d.MainWindow?.Clipboard?.SetTextAsync(OutputText) ?? Task.CompletedTask);
+        await FlashCopyAsync();
     }
 
     [RelayCommand]
-    private void Clear()
+    private void Clear() => ExecuteClear();
+
+    public override void ExecuteClear()
     {
-        InputText  = string.Empty;
-        OutputText = string.Empty;
+        InputText = OutputText = string.Empty;
         StatusText = "Enter text and click Encode, or paste Base64 and click Decode";
     }
 
-    /// <summary>
-    /// Pastes content and tries to decode it as Base64.
-    /// If decoding fails (plain text), the content is left in the input for manual Encode.
-    /// </summary>
+    public override async Task ExecuteCopyOutputAsync()
+    {
+        if (string.IsNullOrEmpty(OutputText)) return;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)
+            await (d.MainWindow?.Clipboard?.SetTextAsync(OutputText) ?? Task.CompletedTask);
+        await FlashCopyAsync();
+    }
+
+    public override async Task SaveAsAsync()
+    {
+        if (string.IsNullOrEmpty(OutputText)) return;
+        var sp = GetStorageProvider(); if (sp is null) return;
+
+        var file = await sp.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title             = "Save Output",
+            SuggestedFileName = "output.txt",
+            FileTypeChoices   = new[] { new FilePickerFileType("Text") { Patterns = new[] { "*.txt" } } }
+        });
+        if (file is null) return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await using var writer = new StreamWriter(stream, Encoding.UTF8);
+        await writer.WriteAsync(OutputText);
+    }
+
     public override Task PasteAndFormat(string clipboardText)
     {
         InputText = clipboardText;
         var (result, _) = _service.Decode(clipboardText, IsUrlSafe);
-        if (result != null)
-            Decode();   // looks like Base64 — decode it
-        // else: plain text — user can click Encode manually
+        if (result != null) Decode();
         return Task.CompletedTask;
     }
 }

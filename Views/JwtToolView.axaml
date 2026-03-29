@@ -33,10 +33,11 @@
             <StackPanel Classes="Toolbar" Orientation="Horizontal" Spacing="6">
                 <Button Command="{Binding DecodeCommand}">Decode</Button>
                 <Border Width="1" Background="#3C3C3C" Margin="4,2"/>
-                <Button Command="{Binding CopyPayloadCommand}">Copy Payload</Button>
-                <Button Command="{Binding CopyHeaderCommand}">Copy Header</Button>
+                <Button Classes="primary" Command="{Binding CopyPayloadCommand}" Content="{Binding CopyPayloadButtonText}"/>
+                <Button Command="{Binding CopyHeaderCommand}"  Content="{Binding CopyHeaderButtonText}"/>
+                <Button Command="{Binding SaveAsCommand}">Save As</Button>
                 <Border Width="1" Background="#3C3C3C" Margin="4,2"/>
-                <Button Command="{Binding ClearCommand}">Clear</Button>
+                <Button Classes="danger" Command="{Binding ClearCommand}">Clear</Button>
             </StackPanel>
         </Border>
 

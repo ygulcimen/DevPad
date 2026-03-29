@@ -9,10 +9,8 @@ namespace DevPad.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    /// <summary>Collection of available tools shown in the sidebar.</summary>
     public ObservableCollection<ToolViewModelBase> Tools { get; }
 
-    /// <summary>Currently selected tool, displayed in the main content area.</summary>
     [ObservableProperty]
     private ToolViewModelBase? _selectedTool;
 
@@ -27,14 +25,10 @@ public partial class MainWindowViewModel : ViewModelBase
             new SqlToolViewModel()
         };
 
-        // Select JSON tool by default
         SelectedTool = Tools[0];
     }
 
-    /// <summary>
-    /// Global Ctrl+Shift+V handler.
-    /// Reads the clipboard then delegates paste+format to the active tool.
-    /// </summary>
+    // ── Ctrl+Shift+V — paste & format in active tool ─────────────────────
     [RelayCommand]
     private async Task GlobalPasteAndFormatAsync()
     {
@@ -46,5 +40,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (!string.IsNullOrEmpty(text))
             await SelectedTool.PasteAndFormat(text);
+    }
+
+    // ── Ctrl+1–5 — switch tools ──────────────────────────────────────────
+    [RelayCommand] private void SelectTool1() => SelectedTool = Tools[0];
+    [RelayCommand] private void SelectTool2() => SelectedTool = Tools[1];
+    [RelayCommand] private void SelectTool3() => SelectedTool = Tools[2];
+    [RelayCommand] private void SelectTool4() => SelectedTool = Tools[3];
+    [RelayCommand] private void SelectTool5() => SelectedTool = Tools[4];
+
+    // ── Ctrl+L — clear active tool ───────────────────────────────────────
+    [RelayCommand]
+    private void GlobalClear() => SelectedTool?.ExecuteClear();
+
+    // ── Ctrl+Shift+C — copy output of active tool ────────────────────────
+    [RelayCommand]
+    private async Task GlobalCopyOutputAsync()
+    {
+        if (SelectedTool != null)
+            await SelectedTool.ExecuteCopyOutputAsync();
     }
 }

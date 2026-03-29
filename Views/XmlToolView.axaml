@@ -35,8 +35,10 @@
             <StackPanel Classes="Toolbar" Orientation="Horizontal" Spacing="6">
                 <Button Command="{Binding FormatCommand}">Format</Button>
                 <Border Width="1" Background="#3C3C3C" Margin="4,2"/>
-                <Button Command="{Binding CopyCommand}">Copy</Button>
-                <Button Command="{Binding ClearCommand}">Clear</Button>
+                <Button Command="{Binding CopyCommand}"          Content="{Binding CopyButtonText}"/>
+                <Button Classes="primary" Command="{Binding CopyFormattedCommand}" Content="{Binding CopyOutputButtonText}"/>
+                <Button Command="{Binding SaveAsCommand}">Save As</Button>
+                <Button Classes="danger" Command="{Binding ClearCommand}">Clear</Button>
             </StackPanel>
         </Border>
 

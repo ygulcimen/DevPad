@@ -66,7 +66,7 @@ public partial class XmlToolView : UserControl
 
         foreach (var (lineTokens, lineIndex) in lines.Select((t, i) => (t, i + 1)))
         {
-            var block = new TextBlock
+            var block = new SelectableTextBlock
             {
                 FontFamily   = MonoFont,
                 FontSize     = 13,

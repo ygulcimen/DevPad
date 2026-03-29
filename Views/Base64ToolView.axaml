@@ -34,8 +34,9 @@
                     <Button Command="{Binding DecodeCommand}">Decode</Button>
                     <Button Command="{Binding SwapCommand}">Swap</Button>
                     <Border Width="1" Background="#3C3C3C" Margin="4,2"/>
-                    <Button Command="{Binding CopyCommand}">Copy Output</Button>
-                    <Button Command="{Binding ClearCommand}">Clear</Button>
+                    <Button Classes="primary" Command="{Binding CopyCommand}" Content="{Binding CopyButtonText}"/>
+                    <Button Command="{Binding SaveAsCommand}">Save As</Button>
+                    <Button Classes="danger" Command="{Binding ClearCommand}">Clear</Button>
                 </StackPanel>
 
                 <!-- Right: URL-safe toggle -->

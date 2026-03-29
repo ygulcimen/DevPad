@@ -11,37 +11,65 @@
     <Application.Styles>
         <FluentTheme />
 
-        <!-- ── Toolbar buttons (shared across all tool views) ─────────── -->
+        <!-- ── Toolbar buttons ────────────────────────────────────────── -->
         <Style Selector="StackPanel.Toolbar > Button">
-            <Setter Property="Background" Value="#3C3C3C"/>
-            <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="Padding" Value="14,5"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="#e6edf3"/>
+            <Setter Property="Padding"         Value="14,5"/>
+            <Setter Property="CornerRadius"    Value="6"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="#30363d"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="MinHeight"       Value="30"/>
         </Style>
         <Style Selector="StackPanel.Toolbar > Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#505050"/>
+            <Setter Property="Background" Value="#21262d"/>
         </Style>
         <Style Selector="StackPanel.Toolbar > Button:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#2A2A2A"/>
+            <Setter Property="Background" Value="#161b22"/>
         </Style>
 
-        <!-- ── TreeView / TreeViewItem (shared by JSON and XML tools) ─── -->
+        <!-- Primary variant (Copy Output, main CTA) — filled blue -->
+        <Style Selector="StackPanel.Toolbar > Button.primary">
+            <Setter Property="Background"  Value="#1f6feb"/>
+            <Setter Property="Foreground"  Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#1f6feb"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#388bfd"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button.primary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1158c7"/>
+        </Style>
+
+        <!-- Danger variant (Clear) — red at rest, brighter on hover -->
+        <Style Selector="StackPanel.Toolbar > Button.danger">
+            <Setter Property="Foreground"  Value="#da3633"/>
+            <Setter Property="BorderBrush" Value="#da3633"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button.danger:pointerover">
+            <Setter Property="Foreground"  Value="#f85149"/>
+            <Setter Property="BorderBrush" Value="#f85149"/>
+        </Style>
+        <Style Selector="StackPanel.Toolbar > Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- ── TreeView / TreeViewItem ─────────────────────────────────── -->
         <Style Selector="TreeView">
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="TreeViewItem">
             <Setter Property="IsExpanded" Value="True"/>
-            <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="Padding" Value="2,1"/>
+            <Setter Property="Foreground" Value="#e6edf3"/>
+            <Setter Property="Padding"    Value="2,1"/>
         </Style>
         <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#2A2D2E"/>
+            <Setter Property="Background" Value="#161b22"/>
         </Style>
         <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#37373D"/>
+            <Setter Property="Background" Value="#1c2128"/>
         </Style>
     </Application.Styles>
 
@@ -49,10 +77,15 @@
         <!-- Monospace font for code display -->
         <FontFamily x:Key="MonospaceFont">Cascadia Code, Consolas, Courier New, monospace</FontFamily>
 
-        <!-- Sidebar styling -->
-        <SolidColorBrush x:Key="SidebarBackground" Color="#1E1E1E"/>
-        <SolidColorBrush x:Key="SidebarItemHover" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="SidebarItemSelected" Color="#37373D"/>
-        <SolidColorBrush x:Key="AccentColor" Color="#0078D4"/>
+        <!-- GitHub-dark colour palette -->
+        <SolidColorBrush x:Key="SidebarBackground"   Color="#161b22"/>
+        <SolidColorBrush x:Key="SidebarItemHover"    Color="#21262d"/>
+        <SolidColorBrush x:Key="SidebarItemSelected" Color="#1c2128"/>
+        <SolidColorBrush x:Key="AccentColor"         Color="#58a6ff"/>
+        <SolidColorBrush x:Key="AppBorderBrush"      Color="#30363d"/>
+        <SolidColorBrush x:Key="SurfaceBg"           Color="#0d1117"/>
+        <SolidColorBrush x:Key="PanelBg"             Color="#161b22"/>
+        <SolidColorBrush x:Key="TextPrimary"         Color="#e6edf3"/>
+        <SolidColorBrush x:Key="TextSecondary"       Color="#7d8590"/>
     </Application.Resources>
 </Application>
