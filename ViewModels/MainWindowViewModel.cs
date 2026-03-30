@@ -20,6 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             new JsonToolViewModel(),
             new XmlToolViewModel(),
+            new CSharpToolViewModel(),
             new JwtToolViewModel(),
             new Base64ToolViewModel(),
             new SqlToolViewModel()
@@ -48,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void SelectTool3() => SelectedTool = Tools[2];
     [RelayCommand] private void SelectTool4() => SelectedTool = Tools[3];
     [RelayCommand] private void SelectTool5() => SelectedTool = Tools[4];
+    [RelayCommand] private void SelectTool6() => SelectedTool = Tools[5];
 
     // ── Ctrl+L — clear active tool ───────────────────────────────────────
     [RelayCommand]

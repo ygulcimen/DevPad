@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DevPad.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="DevPad.Views.CSharpToolView"
+             x:DataType="vm:CSharpToolViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ── Toolbar ───────────────────────────────────────────── -->
+        <Border Grid.Row="0"
+                Background="#161b22"
+                BorderBrush="#30363d"
+                BorderThickness="0,0,0,1"
+                Padding="10,7">
+            <StackPanel Classes="Toolbar" Orientation="Horizontal" Spacing="6">
+                <Button Command="{Binding CopyCommand}" Content="{Binding CopyButtonText}"/>
+                <Button Classes="primary" Command="{Binding CopyFormattedCommand}" Content="{Binding CopyOutputButtonText}"/>
+                <Button Command="{Binding SaveAsCommand}">Save As</Button>
+                <Button Classes="danger" Command="{Binding ClearCommand}">Clear</Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Split pane (Input 35% │ Output 65%) ───────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.35*,4,0.65*">
+
+            <!-- ── Left: INPUT ───────────────────────────────────── -->
+            <Grid Grid.Column="0" RowDefinitions="22,*">
+
+                <!-- Pane label -->
+                <Border Grid.Row="0"
+                        Background="#161b22"
+                        BorderBrush="#3C3C3C"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock Text="INPUT"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#7d8590"
+                               VerticalAlignment="Center"
+                               Padding="12,0"/>
+                </Border>
+
+                <TextBox Grid.Row="1"
+                         Text="{Binding InputText}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         FontFamily="{StaticResource MonospaceFont}"
+                         FontSize="13"
+                         Background="#0d1117"
+                         Foreground="#e6edf3"
+                         CaretBrush="#e6edf3"
+                         SelectionBrush="#264F78"
+                         BorderThickness="0"
+                         Padding="12,8"
+                         VerticalAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         Watermark="Paste C# code here..."/>
+            </Grid>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1"
+                          Background="#30363d"
+                          ResizeBehavior="PreviousAndNext"
+                          ResizeDirection="Columns"/>
+
+            <!-- ── Right: OUTPUT ──────────────────────────────────── -->
+            <Grid Grid.Column="2" RowDefinitions="22,*" Background="#0d1117">
+
+                <!-- Pane label -->
+                <Border Grid.Row="0"
+                        Background="#161b22"
+                        BorderBrush="#3C3C3C"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock Text="FORMATTED"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#7d8590"
+                               VerticalAlignment="Center"
+                               Padding="12,0"/>
+                </Border>
+
+                <!-- Output area -->
+                <Grid Grid.Row="1" Background="#0d1117">
+
+                    <TextBlock x:Name="FormattedEmptyHint"
+                               Text="Formatted output appears once code is entered"
+                               FontSize="13"
+                               Foreground="#4a5568"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="32"/>
+
+                    <ScrollViewer x:Name="OutputScroller"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="False"
+                                  Padding="0,4">
+                        <!-- Each line is one TextBlock added by code-behind -->
+                        <StackPanel x:Name="OutputLines"
+                                    Spacing="0"
+                                    Margin="4,0"/>
+                    </ScrollViewer>
+
+                </Grid>
+
+            </Grid>
+        </Grid>
+
+        <!-- ── Status bar ──────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="#161b22"
+                BorderBrush="#30363d"
+                BorderThickness="0,1,0,0"
+                Padding="12,5">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+
+                <TextBlock Text="{Binding StatusText}"
+                           Foreground="{Binding StatusForeground}"
+                           FontSize="12"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Text="·"
+                           Foreground="#555555"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+                <TextBlock Text="{Binding LineCountText}"
+                           Foreground="#808080"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+
+                <TextBlock Text="·"
+                           Foreground="#555555"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+                <TextBlock Text="{Binding FileSizeText}"
+                           Foreground="#808080"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsValid}"/>
+
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</UserControl>
